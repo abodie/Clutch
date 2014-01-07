@@ -53,7 +53,7 @@ int compression_level;
 
 NSString * crack_application(NSString *application_basedir, NSString *basename, NSString* version);
 NSString * init_crack_binary(NSString *application_basedir, NSString *bdir, NSString *workingDir, NSDictionary *infoplist);
-NSString* swap_arch(NSString *binaryPath, NSString* baseDirectory, NSString* baseName, uint32_t swaparch);
+NSString* swap_arch(NSString *binaryPath, NSString* baseDirectory, NSString* baseName, cpu_subtype_t swaparch);
 NSString * crack_binary(NSString *binaryPath, NSString *finalPath, NSString **error);
 NSString * genRandStringLength(int len);
 uint32_t get_local_cpusubtype();

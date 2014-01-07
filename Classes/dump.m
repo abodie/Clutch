@@ -6,7 +6,7 @@
 #include <mach-o/loader.h>
 
 extern kern_return_t mach_vm_region
- (
+(
  vm_map_t target_task,
  mach_vm_address_t *address,
  mach_vm_size_t *size,
@@ -15,27 +15,27 @@ extern kern_return_t mach_vm_region
  mach_msg_type_number_t *infoCnt,
  mach_port_t *object_name
  );
- 
- extern kern_return_t mach_vm_read_overwrite
- (
+
+extern kern_return_t mach_vm_read_overwrite
+(
  vm_map_t target_task,
  mach_vm_address_t address,
  mach_vm_size_t size,
  mach_vm_address_t data,
  mach_vm_size_t *outsize
  );
- 
- extern kern_return_t mach_vm_protect
- (
+
+extern kern_return_t mach_vm_protect
+(
  vm_map_t target_task,
  mach_vm_address_t address,
  mach_vm_size_t size,
  boolean_t set_maximum,
  vm_prot_t new_protection
  );
- 
- extern kern_return_t mach_vm_write
- (
+
+extern kern_return_t mach_vm_write
+(
  vm_map_t target_task,
  mach_vm_address_t address,
  vm_offset_t data,
@@ -43,7 +43,7 @@ extern kern_return_t mach_vm_region
  );
 
 BOOL dump_binary_32(FILE *origin, FILE *target, uint32_t top, NSString *originPath, NSString* finalPath) {
-//#ifndef __LP64__
+    //#ifndef __LP64__
     fseek(target, top, SEEK_SET); // go the top of the target
 	// we're going to be going to this position a lot so let's save it
 	fpos_t topPosition;
@@ -252,11 +252,11 @@ BOOL dump_binary_32(FILE *origin, FILE *target, uint32_t top, NSString *originPa
             
 			// move an entire page into memory (we have to move an entire page regardless of whether it's a resultant or not)
 			/*if((err = vm_read_overwrite(port, (mach_vm_address_t) __text_start + (pages_d * 0x1000), (vm_size_t) 0x1000, (pointer_t) buf, &local_size)) != KERN_SUCCESS)	{
-                VERBOSE("dumping binary: failed to dump a page");
-				free(checksum); // free checksum table
-				kill(pid, SIGKILL); // kill fork
-				return FALSE;
-			}*/
+             VERBOSE("dumping binary: failed to dump a page");
+             free(checksum); // free checksum table
+             kill(pid, SIGKILL); // kill fork
+             return FALSE;
+             }*/
             
             if ((err = mach_vm_read_overwrite(port, (mach_vm_address_t) __text_start + (pages_d * 0x1000), (vm_size_t) 0x1000, (pointer_t) buf, &local_size)) != KERN_SUCCESS)	{
                 
@@ -267,8 +267,8 @@ BOOL dump_binary_32(FILE *origin, FILE *target, uint32_t top, NSString *originPa
                 
                 return FALSE;
             }
-                 
-                 
+            
+            
 			if (header) {
                 // is this the first header page?
                 if (i_lcmd == 0) {
@@ -335,9 +335,9 @@ BOOL dump_binary_32(FILE *origin, FILE *target, uint32_t top, NSString *originPa
                         overdrive_dyld->dylib.current_version = OVERDRIVE_DYLIB_CURRENT_VER;
                         overdrive_dyld->dylib.timestamp = 2;
                         overdrive_dyld->dylib.name.offset = sizeof(struct dylib_command);
-                        #ifndef __LP64__
+#ifndef __LP64__
                         overdrive_dyld->dylib.name.ptr = (char *) sizeof(struct dylib_command);
-                        #endif
+#endif
                         char *p = (char *) overdrive_dyld + overdrive_dyld->dylib.name.offset;
                         strncpy(p, OVERDRIVE_DYLIB_PATH, sizeof(OVERDRIVE_DYLIB_PATH));
                     }
@@ -365,17 +365,17 @@ BOOL dump_binary_32(FILE *origin, FILE *target, uint32_t top, NSString *originPa
 	}
 	stop_bar();
 	return TRUE;
-//#endif
-/*#ifdef __LP64__
-    printf("\nWe can't crack 32bit portions when running in 64bit mode!\n\n");
-    VERBOSE("string %@", [NSString stringWithFormat:@"./Clutch_32 -32 \"%@\" \"%@\" %u", originPath, finalPath, top]);
-    int retVal = system([[NSString stringWithFormat:@"./Clutch_32 -32 \"%@\" \"%@\" %u", originPath, finalPath, top] UTF8String]);
-    if (retVal != 0) {
-        printf("error: could not dump 32bit portion");
-        return FALSE;
-    }
-    return TRUE;
-#endif*/
+    //#endif
+    /*#ifdef __LP64__
+     printf("\nWe can't crack 32bit portions when running in 64bit mode!\n\n");
+     VERBOSE("string %@", [NSString stringWithFormat:@"./Clutch_32 -32 \"%@\" \"%@\" %u", originPath, finalPath, top]);
+     int retVal = system([[NSString stringWithFormat:@"./Clutch_32 -32 \"%@\" \"%@\" %u", originPath, finalPath, top] UTF8String]);
+     if (retVal != 0) {
+     printf("error: could not dump 32bit portion");
+     return FALSE;
+     }
+     return TRUE;
+     #endif*/
 }
 
 
@@ -438,7 +438,7 @@ BOOL dump_binary_64(FILE *origin, FILE *target, uint32_t top, NSString *originPa
         if (foundCrypt && foundSignature && foundStartText)
             break;
     }
-
+    
 	
 	// we need to have found both of these
 	if (!foundCrypt || !foundSignature || !foundStartText) {
@@ -660,9 +660,9 @@ BOOL dump_binary_64(FILE *origin, FILE *target, uint32_t top, NSString *originPa
                         overdrive_dyld->dylib.current_version = OVERDRIVE_DYLIB_CURRENT_VER;
                         overdrive_dyld->dylib.timestamp = 2;
                         overdrive_dyld->dylib.name.offset = sizeof(struct dylib_command);
-            #ifndef __LP64__
+#ifndef __LP64__
                         overdrive_dyld->dylib.name.ptr = (char *) sizeof(struct dylib_command);
-            #endif
+#endif
                         char *p = (char *) overdrive_dyld + overdrive_dyld->dylib.name.offset;
                         strncpy(p, OVERDRIVE_DYLIB_PATH, sizeof(OVERDRIVE_DYLIB_PATH));
                     }
