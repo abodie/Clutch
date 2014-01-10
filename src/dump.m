@@ -45,7 +45,7 @@ extern kern_return_t mach_vm_region
  mach_msg_type_number_t dataCnt
  );
 
-#ifndef __LP64__
+//#ifndef __LP64__
 BOOL dump_binary_32(FILE *origin, FILE *target, uint32_t top, NSString *originPath, NSString* finalPath) {
 //#ifndef __LP64__
     fseek(target, top, SEEK_SET); // go the top of the target
@@ -387,7 +387,7 @@ BOOL dump_binary_32(FILE *origin, FILE *target, uint32_t top, NSString *originPa
 #endif*/
 }
 
-#else
+//#else
 
 BOOL dump_binary_64(FILE *origin, FILE *target, uint32_t top, NSString *originPath, NSString* finalPath) {
 	fseek(target, top, SEEK_SET); // go the top of the target
@@ -700,7 +700,7 @@ BOOL dump_binary_64(FILE *origin, FILE *target, uint32_t top, NSString *originPa
 	return TRUE;
 }
 
-#endif
+//#endif
 
 void sha1(uint8_t *hash, uint8_t *data, unsigned int size) {
 	SHA1Context context;

@@ -46,16 +46,17 @@ uint32_t local_cpusubtype;
 int overdrive_enabled;
 
 @implementation Cracker
+@synthesize workingDirectory = _workingDirectory;
+@synthesize headersToStrip = _headersToStrip;
+@synthesize sinfPath = _sinfPath;
+@synthesize suppPath = _suppPath;
+@synthesize supfPath = _supfPath; // I thought the whole point was that the compiler did this shit for you these days
 
 - (id)init
 {
     self = [super init];
     if (self)
     {
-        _appDescription = NULL;
-        _finaldir = NULL;
-        _baselinedir = NULL;
-        _workingdir = NULL;
         get_local_device_information();
     }
     return self;
@@ -63,21 +64,29 @@ int overdrive_enabled;
 
 -(void)dealloc
 {
-    if(_appDescription)
+    if (workingDirectory)
     {
-        [_appDescription release];
+        [workingDirectory release];
     }
-    if(_baselinedir)
+    
+    if (headersToStrip)
     {
-        [_baselinedir release];
+        [headersToStrip release];
     }
-    if(_finaldir)
+    
+    if (sinfPath)
     {
-        [_finaldir release];
+        [sinfPath release];
     }
-    if(_workingdir)
+    
+    if (suppPath)
     {
-        [_workingdir release];
+        [suppPath release];
+    }
+    
+    if (supfPath)
+    {
+        [supfPath release];
     }
     
     [super dealloc];
@@ -92,27 +101,24 @@ void get_local_device_information()
     host_info(mach_host_self(), HOST_BASIC_INFO, (host_info_t)&hostinfo, &infocount);
     
     local_cputype = hostinfo.cpu_type;
-#ifdef __LP64__
-    local_cpusubtype = 0; // for some reason this is 1 if using hostinfo.cpu_subtype
-#else
-    local_cpusubtype = hostinfo.cpu_subtype;
-#endif
+    local_cpusubtype = hostinfo.cpu_subtype - 1; // for some reason hostinfo returns cpusubtype + 1
     
-    NSLog(@"Local CPUTYPE: %u", local_cputype);
-    NSLog(@"Local CPUTSUBTYPE: %u",local_cpusubtype);
-    NSLog(@"Endianess: %ld", CFByteOrderGetCurrent());
+    NSLog(@"Local cputype: %u", local_cputype);
+    NSLog(@"Local cpusubtype: %u",local_cpusubtype);
 }
 
 
-static BOOL forceRemoveDirectory(NSString *dirpath)
+- (BOOL)removeDirectory:(NSString *)dirpath
 {
+    NSError *error;
     BOOL isDir;
     NSFileManager *fileManager=[NSFileManager defaultManager];
     if(![fileManager fileExistsAtPath:dirpath isDirectory:&isDir])
     {
-        if(![fileManager removeItemAtPath:dirpath error:NULL])
+        if(![fileManager removeItemAtPath:dirpath error:&error])
         {
-            ERROR(@"Failed to force remove directory.");
+            ERROR(@"Failed to force remove directory: %@", dirpath);
+            NSLog(@"Error: %@", error.localizedDescription);
             return NO;
         }
     }
@@ -120,28 +126,31 @@ static BOOL forceRemoveDirectory(NSString *dirpath)
     return YES;
 }
 
-static BOOL forceCreateDirectory(NSString *dirpath)
+- (BOOL)createDirectory:(NSString *)dirpath
 {
+    NSError *error;
     BOOL isDir;
     NSFileManager *fileManager= [NSFileManager defaultManager];
     if(![fileManager fileExistsAtPath:dirpath isDirectory:&isDir])
     {
-        if(![fileManager removeItemAtPath:dirpath error:NULL])
+        if(![fileManager removeItemAtPath:dirpath error:&error])
         {
             ERROR(@"Failed to remove item at path: %@", dirpath);
+            NSLog(@"Error: %@", error);
             return NO;
         }
     }
-    if(![fileManager createDirectoryAtPath:dirpath withIntermediateDirectories:YES attributes:nil error:NULL])
+    if(![fileManager createDirectoryAtPath:dirpath withIntermediateDirectories:YES attributes:nil error:&error])
     {
         ERROR(@"Failed to create directory at path: %@", dirpath);
+        NSLog(@"Error: %@", error);
         return NO;
     }
     
     return YES;
 }
 
-static BOOL copyFile(NSString *infile, NSString *outfile)
+- (BOOL)copyFile:(NSString *)infile toPath:(NSString *)outfile
 {
     NSError *error;
     NSFileManager *fileManager= [NSFileManager defaultManager];
@@ -159,155 +168,11 @@ static BOOL copyFile(NSString *infile, NSString *outfile)
     if(![fileManager copyItemAtPath:infile toPath:outfile error:&error])
     {
         ERROR(@"Failed to copy item: %@ to %@", infile, outfile);
-        NSLog(@"Copy file error: %@", error.localizedDescription);
+        NSLog(@"Error: %@", error.localizedDescription);
         return NO;
     }
     
     return YES;
-}
-
-// createPartialCopy
-// copies only the files required for cracking an application to a staging area
-
--(BOOL)createPartialCopy:(NSString *)outdir withApplicationDir:(NSString *)appdir withMainExecutable:(NSString *)mainexe
-{
-    // Create output directory
-    if(!forceCreateDirectory(outdir))
-    {
-        return NO;
-    }
-    
-    // XXX: This, only if necessary: Get sandbox folder
-    //NSString *topleveldir=[appdir stringByDeletingLastPathComponent];
-    //NSString *appdirprefix=[appdir lastPathComponent];
-
-    // Get top level .app folder
-    NSString *topleveldir=[appdir copy];
-
-    // Files required for cracking
-    NSMutableArray *files=[[NSMutableArray alloc] init];
-    [files addObject:@"_CodeSignature/CodeResources"];
-    [files addObject:[NSString stringWithFormat:@"SC_Info/%@.sinf", mainexe]];
-    [files addObject:[NSString stringWithFormat:@"SC_Info/%@.supp", mainexe]];
-    [files addObject:mainexe];
-    //XXX:[files addObject:[NSString stringWithFormat:@"%@/_CodeSignature/CodeResources", appdirprefix]];
-    //XXX:[files addObject:[NSString stringWithFormat:@"%@/SC_Info/%@.sinf", appdirprefix, mainexe]];
-    //XXX:[files addObject:[NSString stringWithFormat:@"%@/SC_Info/%@.supp", appdirprefix, mainexe]];
-    //XXX:[files addObject:[NSString stringWithFormat:@"%@/%@", appdirprefix, mainexe]];
-    //XXX:[files addObject:[NSString stringWithFormat:@"%@/Info.plist", appdirprefix];
-    //XXX:[files addObject:@"iTunesMetadata.plist"];
-    //XXX:[files addObject:@"iTunesArtwork"];
-    
-    NSEnumerator *e = [files objectEnumerator];
-    NSString *file;
-    while(file = [e nextObject])
-    {
-        if(!copyFile([NSString stringWithFormat:@"%@/%@", topleveldir, file],
-                     [NSString stringWithFormat:@"%@/%@", outdir, file]))
-        {
-            forceRemoveDirectory(outdir);
-            
-            [topleveldir release];
-            [files release];
-            
-            return NO;
-        }
-    }
-
-    [topleveldir release];
-    [files release];
-    
-    return YES;
-}
-
-// prepareFromInstalledApp
-// set up application cracking from an installed application
-
--(BOOL)prepareFromInstalledApp:(NSDictionary *)appdict
-{
-    // Create the app description
-    _appDescription=[NSString stringWithFormat:@"%@: %@ (%@)",
-                     [appdict objectForKey:@"ApplicationIdentifier"],
-                     [appdict objectForKey:@"ApplicationDisplayName"],
-                     [appdict objectForKey:@"ApplicationVersion"]];
-
-    // Create full copy of application which we will modify to our needs
-    // to form final IPA file
-    NSUUID *finaluuid=[[NSUUID alloc] init];
-    _finaldir=[NSString stringWithFormat:@"%@/%@/Payload",
-                                            NSTemporaryDirectory(),
-                                            [finaluuid UUIDString]];
-    if(![self createFullCopyOfContents: _finaldir withAppBaseDir:[appdict objectForKey:@"ApplicationBaseDirectory"]])
-    {
-        [_finaldir release];
-        _finaldir=NULL;
-        [finaluuid release];
-        return NO;
-    }
-    
-    [finaluuid release];
-
-
-    // Create executable baseline copy from which lipo copies are formed
-    NSUUID *baselineuuid=[[NSUUID alloc] init];
-    _baselinedir=[NSString stringWithFormat:@"%@/%@",
-                                            NSTemporaryDirectory(),
-                                            [baselineuuid UUIDString]];
-    if(![self createPartialCopy: _baselinedir
-             withApplicationDir:[appdict objectForKey:@"ApplicationDirectory"]
-             withMainExecutable:[appdict objectForKey:@"ApplicationName"]])
-    {
-        [_baselinedir release];
-        _baselinedir=NULL;
-        [baselineuuid release];
-        return NO;
-    }
-
-/*
-    // Create working directory copy
-    NSUUID *workinguuid=[[NSUUID alloc] init];
-    _workingdir=[NSString stringWithFormat:@"%@/%@",
-                           NSTemporaryDirectory(),
-                           [workinguuid UUIDString]];
-    if(![self createPartialCopy:_workingdir
-         withApplicationDir:[appdict objectForKey:@"ApplicationDirectory"]
-         withMainExecutable:[appdict objectForKey:@"ApplicationName"]])
-    {
-        [[NSFileManager defaultManager] removeItemAtPath:_baselinedir error:nil];
-        
-        [_baselinedir release];
-        _baselinedir=NULL;
-        [_workingdir release];
-        _workingdir=NULL;
-        [baselineuuid release];
-        [workinguuid release];
-        return NO;
-    }
-
-    [workinguuid release];
-*/
-    // Clean up
-    [baselineuuid release];
-
-    return YES;
-}
-
--(BOOL)prepareFromSpecificExecutable:(NSString *)exepath returnDescription:(NSMutableString *)description
-{
-    // Create the app description
-    _appDescription=[NSString stringWithFormat:@"%@",exepath];
-
-    return YES;
-}
-
--(NSString *)getAppDescription
-{
-    return _appDescription;
-}
-
--(NSString *)getOutputFolder
-{
-    return _finaldir;
 }
 
 - (BOOL)preflightBinaryOfApplication:(Application *)application
@@ -346,7 +211,7 @@ static BOOL copyFile(NSString *infile, NSString *outfile)
     
     NSString *finalBinaryPath = [workingDirectory stringByAppendingFormat:@"Payload/%@/%@", application.baseName, application.binary];
     
-    if (!copyFile(application.binaryPath, finalBinaryPath))
+    if (![self copyFile:application.binaryPath toPath:finalBinaryPath])
     {
         return NO;
     }
@@ -484,7 +349,7 @@ static BOOL copyFile(NSString *infile, NSString *outfile)
                     NSLog(@"32-bit dumping.");
                     // Crack 32-bit arch
 #warning This is the bit that needs to be sorted really :///
-#ifndef __LP64__
+//#ifndef __LP64__
                     if (!dump_binary_32(swapped_binary, newBinary, arch->offset, archPath, finalBinaryPath))
                     {
                         stop_bar();
@@ -500,11 +365,11 @@ static BOOL copyFile(NSString *infile, NSString *outfile)
                     {
                         NSLog(@"Cracked arch: %@", [self getPrettyArchName:arch->cpusubtype]);
                     }
-#endif
+//#endif
                 }
                 else if (arch->cputype == CPUTYPE_64)
                 {
-#ifdef __LP64__
+//#ifdef __LP64__
                     if (!dump_binary_64(swapped_binary, newBinary, arch->offset, archPath, finalBinaryPath))
                     {
                         stop_bar();
@@ -521,7 +386,7 @@ static BOOL copyFile(NSString *infile, NSString *outfile)
                     {
                         NSLog(@"Cracked arch: %@", [self getPrettyArchName:arch->cpusubtype]);
                     }
-#endif
+//#endif
 
                 }
             }
@@ -532,7 +397,7 @@ static BOOL copyFile(NSString *infile, NSString *outfile)
                 if (arch->cpusubtype == CPUTYPE_32)
                 {
                     // Crack 32-bit arch
-#ifndef __LP64__
+//#ifndef __LP64__
                     if (!dump_binary_32(oldBinary, newBinary, arch->offset, application.binaryPath, finalBinaryPath))
                     {
                         stop_bar();
@@ -549,12 +414,12 @@ static BOOL copyFile(NSString *infile, NSString *outfile)
                     {
                         NSLog(@"Cracked arch: %@", [self getPrettyArchName:arch->cpusubtype]);
                     }
-#endif
+//#endif
                 }
                 else if (arch->cpusubtype == CPUTYPE_64)
                 {
                     // Crack 64-bit arch
-#ifdef __LP64__
+//#ifdef __LP64__
                     if (!dump_binary_64(oldBinary, newBinary, arch->offset, application.binaryPath, finalBinaryPath))
                     {
                         stop_bar();
@@ -571,7 +436,7 @@ static BOOL copyFile(NSString *infile, NSString *outfile)
                     {
                         NSLog(@"Cracked arch: %@", [self getPrettyArchName:arch->cpusubtype]);
                     }
-#endif
+//#endif
                 }
             }
         } // end of for loop
@@ -660,7 +525,7 @@ static BOOL copyFile(NSString *infile, NSString *outfile)
     
     NSString *tempSwapBinaryPath = [workingDirectory stringByAppendingFormat:@"%@_lwork", [self getPrettyArchName:arch_to_swap_to]];
     
-    if (!copyFile(application.binaryPath, tempSwapBinaryPath))
+    if (![self copyFile:application.binaryPath toPath:tempSwapBinaryPath])
     {
         [self removeTempFiles];
         
@@ -751,7 +616,9 @@ static BOOL copyFile(NSString *infile, NSString *outfile)
     VERBOSE(@"Moving SC_Info keys...");
     
     // Move SC_Info Keys
-    NSArray *SCInfoFiles = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:@"SC_Info/" error:nil];
+    NSArray *SCInfoFiles = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:[NSString stringWithFormat:@"%@SC_Info/", application.directory] error:nil];
+    NSLog(@"%@", application.directory);
+    NSLog(@"%@", SCInfoFiles);
     
     for (int i = 0; i < [SCInfoFiles count]; i++)
     {
@@ -759,7 +626,7 @@ static BOOL copyFile(NSString *infile, NSString *outfile)
         {
             sinfPath = [application.directory stringByAppendingFormat:@"SC_Info/%@", SCInfoFiles[i]];
             
-            if (!copyFile(sinfPath, [workingDirectory stringByAppendingFormat:@"SC_Info/"]))
+            if (![self copyFile:sinfPath toPath:[workingDirectory stringByAppendingFormat:@"SC_Info/%@", SCInfoFiles[i]]])
             {
                 NSLog(@"Error moving sinf file.");
                 
@@ -772,7 +639,7 @@ static BOOL copyFile(NSString *infile, NSString *outfile)
         {
             suppPath = [application.directory stringByAppendingFormat:@"SC_Info/%@", SCInfoFiles[i]];
             
-            if (!copyFile(suppPath, [workingDirectory stringByAppendingFormat:@"SC_Info/"]))
+            if (![self copyFile:suppPath toPath:[workingDirectory stringByAppendingFormat:@"SC_Info/%@", SCInfoFiles[i]]])
             {
                 NSLog(@"Error moving supp file.");
                 
@@ -785,7 +652,7 @@ static BOOL copyFile(NSString *infile, NSString *outfile)
         {
             supfPath = [application.directory stringByAppendingFormat:@"SC_Info/%@", SCInfoFiles[i]];
             
-            if (!copyFile(supfPath, [workingDirectory stringByAppendingFormat:@"SC_Info/"]))
+            if (![self copyFile:supfPath toPath:[workingDirectory stringByAppendingFormat:@"SC_Info/%@", SCInfoFiles[i]]])
             {
                 NSLog(@"Error moving supf file.");
                 
@@ -801,7 +668,7 @@ static BOOL copyFile(NSString *infile, NSString *outfile)
 
 - (BOOL)removeTempFiles
 {
-    if (!forceRemoveDirectory(workingDirectory))
+    if (![self removeDirectory:workingDirectory])
     {
         ERROR(@"Failed to remove working directory (you'll have to do this manually from /tmp or restart)");
         
@@ -817,10 +684,9 @@ static BOOL copyFile(NSString *infile, NSString *outfile)
     
     workingDirectory = [NSString stringWithFormat:@"/tmp/%@/", [[NSUUID UUID] UUIDString]];
     
-    if (![[NSFileManager defaultManager] createDirectoryAtPath:[workingDirectory stringByAppendingString:@"Payload/"] withIntermediateDirectories:YES attributes:@{@"NSFileOwnerAccountName": @"mobbile",
-                                                                                                                             @"NSFileGroupOwnerAccountName": @"mobile"} error:NULL])
+    if (![[NSFileManager defaultManager] createDirectoryAtPath:[workingDirectory stringByAppendingString:@"Payload/"] withIntermediateDirectories:YES attributes:@{@"NSFileOwnerAccountName": @"mobbile", @"NSFileGroupOwnerAccountName": @"mobile"} error:NULL])
     {
-        ERROR(@"Could not create working directory");
+        ERROR(@"Could not create working directory"); // this shouldn't happen unless you're doing it wrong
         
         return NO;
     }

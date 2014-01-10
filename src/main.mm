@@ -375,9 +375,7 @@ int main(int argc, const char *argv[])
             {
                 continue;
             } else
-            {
-                NSLog(@"index: %d", index);
-                
+            {                
                 cmd_crack_application(list[index - 1]);
                 
                 return 0;
