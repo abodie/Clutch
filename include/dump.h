@@ -28,6 +28,9 @@ void sha1(uint8_t *hash, uint8_t *data, unsigned int size);
 BOOL dump_binary_64(FILE *origin, FILE *target, uint32_t top, NSString *originPath, NSString *finalPath);
 BOOL dump_binary_32(FILE *origin, FILE *target, uint32_t top, NSString *originPath, NSString *finalPath);
 
+BOOL dump32bit(FILE *origin, FILE *target, NSString *originPath, uint32_t top);
+BOOL dump64bit(FILE *origin, FILE *target, NSString *originPath, uint32_t top);
+
 
 typedef int (*ptrace_ptr_t)(int _request, pid_t _pid, caddr_t _addr, int _data);
 

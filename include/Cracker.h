@@ -8,6 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import "Application.h"
+#import <mach-o/fat.h>
 
 @interface Cracker : NSObject
 {
@@ -17,6 +18,13 @@
     NSString *suppPath;
     NSString *supfPath;
 }
+
+typedef enum {
+    COMPATIBLE,
+    COMPATIBLE_SWAP,
+    COMPATIBLE_STRIP,
+    NOT_COMPATIBLE
+} ArchCompatibility; // flags for arch compatibility
 
 // Objective-C method declarations
 // File system methods
@@ -30,6 +38,13 @@
 - (BOOL)crackBinary:(Application *)application; // Cracks the binary
 - (BOOL)createWorkingDirectory; // Create the working directory for cracking & sets the path to (NSString *)workingDirectory
 - (BOOL)removeTempFiles;
+
+// Device methods
+- (cpu_type_t)cputype;
+- (cpu_subtype_t)cpusubtype;
+- (ArchCompatibility)compatibleWith:(struct fat_arch *)arch;
+
+- (NSString *)getPrettyArchName:(uint32_t)cpusubtype;
 
 // C method declarations
 void get_local_device_information();

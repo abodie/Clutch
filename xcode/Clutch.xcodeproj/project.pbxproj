@@ -20,7 +20,7 @@
 		E93E2F5B188005C4008809DD /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = E93E2F53188005C4008809DD /* main.mm */; };
 		E93E2F5C188005C4008809DD /* out.mm in Sources */ = {isa = PBXBuildFile; fileRef = E93E2F54188005C4008809DD /* out.mm */; };
 		E93E2F5D188005C4008809DD /* Packager.mm in Sources */ = {isa = PBXBuildFile; fileRef = E93E2F55188005C4008809DD /* Packager.mm */; };
-		E93E2F6018800623008809DD /* Clutch-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = E93E2F5E18800623008809DD /* Clutch-Info.plist */; };
+		E93E2F6218815E60008809DD /* Clutch.entitlements in Resources */ = {isa = PBXBuildFile; fileRef = E93E2F6118815E60008809DD /* Clutch.entitlements */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -47,6 +47,7 @@
 		E93E2F55188005C4008809DD /* Packager.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = Packager.mm; sourceTree = "<group>"; };
 		E93E2F5E18800623008809DD /* Clutch-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "Clutch-Info.plist"; sourceTree = "<group>"; };
 		E93E2F5F18800623008809DD /* Clutch-Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "Clutch-Prefix.pch"; sourceTree = "<group>"; };
+		E93E2F6118815E60008809DD /* Clutch.entitlements */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = Clutch.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -104,6 +105,7 @@
 				E93E2F5F18800623008809DD /* Clutch-Prefix.pch */,
 				E93E2F38188005B5008809DD /* Package */,
 				E93E2F3F188005B5008809DD /* PackageVersion.plist */,
+				E93E2F6118815E60008809DD /* Clutch.entitlements */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -236,7 +238,7 @@
 				E93E2F42188005B5008809DD /* 0xdeadfa11 in Resources */,
 				E93E2F41188005B5008809DD /* control.txt in Resources */,
 				E93E2F40188005B5008809DD /* control in Resources */,
-				E93E2F6018800623008809DD /* Clutch-Info.plist in Resources */,
+				E93E2F6218815E60008809DD /* Clutch.entitlements in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -278,7 +280,7 @@
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
 				COPY_PHASE_STRIP = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
@@ -318,7 +320,7 @@
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
 				COPY_PHASE_STRIP = YES;
 				ENABLE_NS_ASSERTIONS = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu99;

@@ -41,7 +41,7 @@
 
 #define CLUTCH_TITLE "Clutch"
 #define CLUTCH_VERSION "v2.0"
-#define CLUTCH_RELEASE "ALPHA 2"
+#define CLUTCH_RELEASE "ALPHA 3"
 
 /*
  * Prototypes
@@ -121,32 +121,7 @@ void print_failures(NSArray *successes, NSArray *failures)
 
 int iterate_crack(NSArray *apps, NSMutableArray *successes, NSMutableArray *failures)
 {
-    // Iterate over all applications
-	NSEnumerator *e = [apps objectEnumerator];
-    while(Application *app = [e nextObject])
-    {
-        // Prepare this application from the installed app
-        Cracker *cracker=[[Cracker alloc] init];
-        
-        NSMutableString *description=[[NSMutableString alloc] init];
-        [cracker prepareFromInstalledApp:app returnDescription:description];
-        
-           
-        if([cracker execute])
-        {
-            [successes addObject:description];
-        }
-        else
-        {
-            [failures addObject:description];
-        }
-        
-        // Repackage IPA file
-        Packager *packager=[[Packager alloc] init];
-        [packager pack_from_source:app.baseDirectory
-                  with_overlay:[cracker getOutputFolder]];
-    }
-    return 0;
+    return 1;
 }
 
 int cmd_crack_all(void)
@@ -195,7 +170,7 @@ int cmd_crack_updated(void)
 
 int cmd_crack_exe(NSString *path)
 {
-    // Create list for failures and successes
+/*    // Create list for failures and successes
     NSMutableArray *failures = [[NSMutableArray alloc] init];
     NSMutableArray *successes = [[NSMutableArray alloc] init];
     
@@ -232,7 +207,8 @@ int cmd_crack_exe(NSString *path)
     [failures release];
     [successes release];
     
-    return ret;
+    return ret;*/
+    return 1;
 }
 
 int cmd_crack_application(Application *application)

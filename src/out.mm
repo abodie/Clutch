@@ -57,7 +57,7 @@ void print_bar()
     {
         if (strlen(bar_msg) > (width - 5))
         {
-            strncpy(bar_msg + width - 5, "...", 4);
+            strncpy(bar_msg + width - 5, "...", sizeof(bar_msg));
         }
         
         printf("%s", bar_msg);

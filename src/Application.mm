@@ -9,6 +9,7 @@
 #import "Application.h"
 
 @implementation Application
+@synthesize baseDirectory = _baseDirectory, directory = _directory, displayName = _displayName, binary = _binary, UUID = _UUID, version = _version, identifier = _identifier, infoPlist = _infoPlist, baseName = _baseName, binaryPath = _binaryPath; // shutting errors the fuck up
 
 
 - (NSString *)description
